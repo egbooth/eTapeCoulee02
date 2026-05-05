@@ -38,6 +38,7 @@ double v_depth = 0.0;
 double v_sensorV = 0.0;
 double v_battSoc = 0.0;
 double v_battV = 0.0;
+int v_battState = 0;
 int v_cellSig = 0;
 
 struct Reading
@@ -46,6 +47,7 @@ struct Reading
     float volts;
     float batterySoc;
     float batteryVolts;
+    float batteryState;
     float cellStrength;
     unsigned long timestamp;
 };
@@ -74,6 +76,7 @@ void setup() {
     Particle.variable("SensorVolts", v_sensorV);
     Particle.variable("BattSoC", v_battSoc);
     Particle.variable("BattVolts", v_battV);
+    Particle.variable("BattState", v_battState);
     Particle.variable("CellSignal", v_cellSig);
     Particle.variable("QCount", readingCount); // Exposing the retained count
     
@@ -128,6 +131,7 @@ void takeMeasurement() {
     // Update battery State of Charge(SoC)
     currentReading.batterySoc = System.batteryCharge();
     currentReading.batteryVolts = fuel.getVCell();
+    currentReading.batteryState = System.batteryState();
 
     CellularSignal sig = Cellular.RSSI();
     currentReading.cellStrength = sig.getStrength();
@@ -139,6 +143,7 @@ void takeMeasurement() {
     v_sensorV = (double)currentReading.volts;
     v_battSoc = (double)currentReading.batterySoc;
     v_battV = (double)currentReading.batteryVolts;
+    v_battState = currentReading.batteryState;
     v_cellSig = currentReading.cellStrength;
 }
 
@@ -170,13 +175,14 @@ void publishBatch() {
             char temp[64];
 
             snprintf(temp,sizeof(temp),
-            "[%lu,%.2f,%.2f,%.2f,%.2f,%.2f]",
+            "[%lu,%.2f,%.2f,%.2f,%.2f,%.2f,%d]",
             readings[i].timestamp,
             readings[i].depth,
             readings[i].batteryVolts,
             readings[i].cellStrength,
             readings[i].volts,
-            readings[i].batterySoc
+            readings[i].batterySoc,
+            readings[i].batteryState
         );
 
         strcat(payload, temp);
@@ -213,7 +219,7 @@ void goToSleep() {
 void battSettings() {
   
   SystemPowerConfiguration conf; 
-  conf.powerSourceMaxCurrent(900)    // 5W / 5V = 1000mA. 900mA is the closest PMIC register setting.
+  conf.powerSourceMaxCurrent(1200)    // 5W / 5V = 1000mA. 900mA is the closest PMIC register setting.
       .powerSourceMinVoltage(3880)  
       .batteryChargeCurrent(500)
       .batteryChargeVoltage(4110);  
