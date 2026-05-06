@@ -47,7 +47,7 @@ struct Reading
     float volts;
     float batterySoc;
     float batteryVolts;
-    float batteryState;
+    int batteryState;
     float cellStrength;
     unsigned long timestamp;
 };
@@ -143,7 +143,7 @@ void takeMeasurement() {
     v_sensorV = (double)currentReading.volts;
     v_battSoc = (double)currentReading.batterySoc;
     v_battV = (double)currentReading.batteryVolts;
-    v_battState = currentReading.batteryState;
+    v_battState = (int)currentReading.batteryState;
     v_cellSig = currentReading.cellStrength;
 }
 
